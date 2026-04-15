@@ -17,9 +17,14 @@ services:
     # Build from repo root so we can build the web app first, then the API.
     # The compiled React static files (apps/web/dist) are served by Express directly,
     # so no separate static site or Vercel account is needed.
+    #
+    # NOTE: NODE_ENV=production (set below) causes plain `npm install` to skip
+    # devDependencies. We use --include=dev so build tools (tsc, vite, prisma)
+    # are always available. A single root install covers both workspace packages.
     buildCommand: >
-      (cd apps/web && npm install && npm run build) &&
-      (cd apps/api && npm install && npx prisma generate && npm run build)
+      npm install --include=dev &&
+      (cd apps/web && npm run build) &&
+      (cd apps/api && npx prisma generate && npm run build)
     # migrate deploy is idempotent — safe to run on every restart.
     startCommand: cd apps/api && npx prisma migrate deploy && node dist/app.js
     healthCheckPath: /health
