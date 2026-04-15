@@ -11,7 +11,8 @@ function requireEnv(key: string, defaultValue?: string): string {
 
 export const config = {
   nodeEnv: process.env.NODE_ENV ?? 'development',
-  port: parseInt(process.env.API_PORT ?? '3001', 10),
+  // Render (and other PaaS) inject PORT; API_PORT is used locally via Docker.
+  port: parseInt(process.env.API_PORT ?? process.env.PORT ?? '3001', 10),
   
   // Database
   databaseUrl: requireEnv('DATABASE_URL', 'postgresql://ips_user:ips_password@localhost:5432/ips_freight'),

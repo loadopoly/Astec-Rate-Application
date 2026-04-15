@@ -13,10 +13,11 @@ services:
     runtime: node
     region: oregon
     plan: free
+    nodeVersion: 20
     rootDir: apps/api
     # apps/api has its own package.json and works standalone (no root workspace needed in production).
     buildCommand: npm install && npx prisma generate && npm run build
-    # `prisma migrate deploy` is idempotent — safe to run on each restart.
+    # `prisma migrate deploy` applies any committed migrations idempotently (safe on every restart).
     # Render free tier runs a single instance so there is no multi-instance race condition.
     startCommand: npx prisma migrate deploy && node dist/app.js
     healthCheckPath: /health
