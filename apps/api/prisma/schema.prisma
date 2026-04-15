@@ -1,0 +1,485 @@
+// ===========================================
+// IPS Freight Platform - Database Schema
+// ===========================================
+// This is the Prisma schema file for PostgreSQL
+// Run `npx prisma migrate dev` to create migrations
+// Run `npx prisma generate` to regenerate the client
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & AUTHENTICATION
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  role          UserRole  @default(USER)
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime?
+  
+  site          Site      @relation(fields: [siteId], references: [id])
+  siteId        String
+  
+  quotes        Quote[]
+  auditLogs     AuditLog[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([email])
+  @@index([siteId])
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  USER
+  VIEWER
+}
+
+// ============================================
+// SITE / FACILITY
+// ============================================
+
+model Site {
+  id            String    @id @default(cuid())
+  name          String    // Jerome, Wilson, PDC, Blair, Burlington
+  code          String    @unique
+  address       String
+  city          String
+  state         String
+  zip           String
+  latitude      Float?
+  longitude     Float?
+  isActive      Boolean   @default(true)
+  
+  users         User[]
+  quotes        Quote[]
+  carrierSites  CarrierSite[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// ============================================
+// LOCATION & LANE
+// ============================================
+
+model Location {
+  id            String    @id @default(cuid())
+  city          String
+  state         String
+  zip           String?
+  latitude      Float?
+  longitude     Float?
+  
+  originLanes   Lane[]    @relation("OriginLocation")
+  destLanes     Lane[]    @relation("DestLocation")
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([city, state])
+  @@index([state])
+}
+
+model Lane {
+  id            String    @id @default(cuid())
+  
+  origin        Location  @relation("OriginLocation", fields: [originId], references: [id])
+  originId      String
+  destination   Location  @relation("DestLocation", fields: [destId], references: [id])
+  destId        String
+  
+  distance      Float?    // Miles (calculated)
+  transitDays   Int?      // Estimated transit time
+  
+  quotes        Quote[]
+  metrics       LaneMetric[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([originId, destId])
+  @@index([originId])
+  @@index([destId])
+}
+
+model LaneMetric {
+  id            String    @id @default(cuid())
+  
+  lane          Lane      @relation(fields: [laneId], references: [id])
+  laneId        String
+  
+  period        DateTime  // First day of month for aggregation
+  equipmentType String?   // FB, SD, DD, TOW, etc. or null for all
+  
+  minRate       Float
+  maxRate       Float
+  avgRate       Float
+  medianRate    Float
+  p25Rate       Float?    // 25th percentile
+  p75Rate       Float?    // 75th percentile
+  shipmentCount Int
+  ratePerMile   Float?
+  
+  createdAt     DateTime  @default(now())
+
+  @@unique([laneId, period, equipmentType])
+  @@index([laneId])
+  @@index([period])
+}
+
+// ============================================
+// CARRIER
+// ============================================
+
+model Carrier {
+  id            String    @id @default(cuid())
+  name          String    @unique
+  mcNumber      String?   @unique
+  dotNumber     String?
+  type          CarrierType
+  isAssetBased  Boolean   @default(false)
+  isBroker      Boolean   @default(false)
+  isPreferred   Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  notes         String?
+  
+  contacts      CarrierContact[]
+  sites         CarrierSite[]
+  bids          Bid[]
+  selectedQuotes Quote[]  @relation("SelectedCarrier")
+  performance   CarrierPerformance[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum CarrierType {
+  CARRIER
+  BROKER
+  CARRIER_BROKER
+}
+
+model CarrierContact {
+  id            String    @id @default(cuid())
+  
+  carrier       Carrier   @relation(fields: [carrierId], references: [id], onDelete: Cascade)
+  carrierId     String
+  
+  name          String
+  title         String?
+  phone         String
+  email         String
+  isPrimary     Boolean   @default(false)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([carrierId])
+}
+
+model CarrierSite {
+  id            String    @id @default(cuid())
+  
+  carrier       Carrier   @relation(fields: [carrierId], references: [id], onDelete: Cascade)
+  carrierId     String
+  site          Site      @relation(fields: [siteId], references: [id])
+  siteId        String
+  
+  isPreferred   Boolean   @default(false)
+  notes         String?
+  
+  createdAt     DateTime  @default(now())
+
+  @@unique([carrierId, siteId])
+}
+
+model CarrierPerformance {
+  id              String    @id @default(cuid())
+  
+  carrier         Carrier   @relation(fields: [carrierId], references: [id], onDelete: Cascade)
+  carrierId       String
+  
+  period          DateTime  // First day of month
+  totalBids       Int       @default(0)
+  wonBids         Int       @default(0)
+  winRate         Float     @default(0)
+  avgResponseHrs  Float?    // Average hours to respond
+  onTimePickup    Float?    // Percentage 0-100
+  onTimeDelivery  Float?    // Percentage 0-100
+  avgEquipRating  Float?    // 1-5 scale
+  avgServiceRating Float?   // 1-5 scale
+  avgResponseRating Float?  // 1-5 scale
+  
+  createdAt       DateTime  @default(now())
+
+  @@unique([carrierId, period])
+  @@index([carrierId])
+  @@index([period])
+}
+
+// ============================================
+// QUOTE
+// ============================================
+
+model Quote {
+  id              String      @id @default(cuid())
+  requestNumber   String      @unique
+  type            QuoteType
+  status          QuoteStatus @default(PENDING)
+  
+  // Job & Customer
+  jobId           String
+  customer        String
+  
+  // Relations
+  lane            Lane        @relation(fields: [laneId], references: [id])
+  laneId          String
+  site            Site        @relation(fields: [siteId], references: [id])
+  siteId          String
+  createdBy       User?       @relation(fields: [createdById], references: [id])
+  createdById     String?
+  
+  // Equipment Quantities
+  flatbedQty      Int         @default(0)
+  stepDeckQty     Int         @default(0)
+  doubleDeckQty   Int         @default(0)
+  towawayQty      Int         @default(0)
+  dollyQty        Int         @default(0)
+  rgnQty          Int         @default(0)
+  
+  // Equipment Rates (from carrier)
+  flatbedRate     Float       @default(0)
+  stepDeckRate    Float       @default(0)
+  doubleDeckRate  Float       @default(0)
+  towawayRate     Float       @default(0)
+  dollyRate       Float       @default(0)
+  rgnRate         Float       @default(0)
+  
+  // Pricing
+  carrierTotal    Float       @default(0)
+  liveLoadCost    Float       @default(0)
+  listQuote       Float       @default(0)
+  markup          Float       @default(0)  // Decimal (0.10 = 10%)
+  quoteToCustomer Float       @default(0)
+  quoteResult     String?     // BETTER THAN TARGET, ON TARGET, BELOW TARGET
+  
+  // Outcome
+  invoicedAmount  Float?
+  carrierInvoice  Float?
+  finalMargin     Float?
+  finalMarginPct  Float?
+  
+  // Selected Carrier
+  selectedCarrier Carrier?    @relation("SelectedCarrier", fields: [selectedCarrierId], references: [id])
+  selectedCarrierId String?
+  
+  // Bids
+  bids            Bid[]
+  
+  // Dates
+  quoteDate       DateTime
+  shipDate        DateTime?
+  
+  // Notes
+  notes           String?
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([status])
+  @@index([quoteDate])
+  @@index([customer])
+  @@index([laneId])
+  @@index([siteId])
+}
+
+enum QuoteType {
+  BUDGET
+  FIRM
+}
+
+enum QuoteStatus {
+  PENDING
+  QUOTED
+  SIGNED_CONTRACT
+  LOST_SALE
+  CUSTOMER_ARRANGED
+  CLOSED
+}
+
+// ============================================
+// BID
+// ============================================
+
+model Bid {
+  id              String    @id @default(cuid())
+  
+  quote           Quote     @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  quoteId         String
+  carrier         Carrier   @relation(fields: [carrierId], references: [id])
+  carrierId       String
+  
+  // Rate Components
+  lineHaulRate    Float     @default(0)
+  fuelSurcharge   Float     @default(0)
+  permitFees      Float     @default(0)
+  escortFees      Float     @default(0)
+  miscFees        Float     @default(0)
+  totalRate       Float     @default(0)
+  
+  // Equipment-specific rates (JSON)
+  equipmentRates  Json?     // { flatbed: 1500, stepDeck: 2000 }
+  
+  // Status
+  isSelected      Boolean   @default(false)
+  responseHours   Float?    // Hours to respond
+  validUntil      DateTime?
+  
+  // Ratings (post-delivery)
+  equipmentRating Int?      // 1-5
+  responseRating  Int?      // 1-5
+  serviceRating   Int?      // 1-5
+  ratingNotes     String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([quoteId, carrierId])
+  @@index([quoteId])
+  @@index([carrierId])
+}
+
+// ============================================
+// EQUIPMENT & PRODUCTS
+// ============================================
+
+model EquipmentType {
+  id              String    @id @default(cuid())
+  code            String    @unique  // FB, SD, DD, TOW, RGN, DL
+  name            String    // Flatbed, Step Deck, etc.
+  description     String?
+  avgWeightMin    Int?      // lbs
+  avgWeightMax    Int?      // lbs
+  avgLengthMin    Int?      // feet
+  avgLengthMax    Int?      // feet
+  requiresPermit  Boolean   @default(false)
+  requiresEscort  Boolean   @default(false)
+  isActive        Boolean   @default(true)
+  
+  products        Product[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Product {
+  id              String        @id @default(cuid())
+  productGroup    String        // Bins, Silos, Conveyors, Drags, etc.
+  modelGroup      String        // RCFS-1014-3, NGW-200, etc.
+  description     String
+  
+  minWeight       Int           // lbs
+  maxWeight       Int           // lbs
+  minLength       Int           // inches
+  maxLength       Int           // inches
+  minWidth        Int           // inches
+  maxWidth        Int           // inches
+  minHeight       Int           // inches
+  maxHeight       Int           // inches
+  
+  equipmentType   EquipmentType @relation(fields: [equipmentTypeId], references: [id])
+  equipmentTypeId String
+  
+  isActive        Boolean       @default(true)
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([productGroup])
+  @@index([modelGroup])
+}
+
+// ============================================
+// LIVE LOAD CONFIGURATION
+// ============================================
+
+model LiveLoadConfig {
+  id              String    @id @default(cuid())
+  
+  site            String?   // null = default for all sites
+  
+  craneDailyRate  Float
+  laborHourlyRate Float
+  forkliftDailyRate Float
+  defaultMarkup   Float     @default(0.30) // 30%
+  
+  effectiveFrom   DateTime
+  effectiveTo     DateTime?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([site])
+  @@index([effectiveFrom])
+}
+
+// ============================================
+// IMPORT & AUDIT LOGS
+// ============================================
+
+model ImportLog {
+  id              String    @id @default(cuid())
+  filename        String
+  fileType        String    // EXCEL, CSV
+  recordsTotal    Int
+  recordsCreated  Int
+  recordsUpdated  Int
+  recordsFailed   Int
+  errors          Json?     // Array of error messages
+  importedBy      String
+  
+  createdAt       DateTime  @default(now())
+}
+
+model AuditLog {
+  id              String    @id @default(cuid())
+  
+  entity          String    // Quote, Bid, Carrier, User, etc.
+  entityId        String
+  action          AuditAction
+  changes         Json?     // { field: { old: x, new: y } }
+  
+  user            User?     @relation(fields: [userId], references: [id])
+  userId          String?
+  ipAddress       String?
+  userAgent       String?
+  
+  createdAt       DateTime  @default(now())
+
+  @@index([entity, entityId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  EXPORT
+  IMPORT
+}
