@@ -39,8 +39,8 @@ export const errorHandler = (
   const statusCode = err instanceof ApiError ? err.statusCode : 500;
 
   const response: Record<string, unknown> = {
-    error: err.name ?? 'Error',
-    message: err.message ?? 'An unexpected error occurred',
+    error: err.name || 'Error',
+    message: err.message || 'An unexpected error occurred',
   };
 
   if (config.nodeEnv === 'development') {

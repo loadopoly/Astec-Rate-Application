@@ -20,7 +20,7 @@ export const config = {
   redisUrl: process.env.REDIS_URL ?? 'redis://localhost:6379',
   
   // Auth
-  jwtSecret: requireEnv('JWT_SECRET', 'dev-jwt-secret-change-in-production'),
+  jwtSecret: requireEnv('JWT_SECRET', 'ips-default-jwt-secret-DO-NOT-USE-IN-PRODUCTION-change-this-value-now'),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
   
   // CORS

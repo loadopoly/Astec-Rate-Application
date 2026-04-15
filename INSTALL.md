@@ -71,10 +71,11 @@ Same as Windows Step 2 above — download the ZIP from GitHub and extract it.
 The first time you run the app on Mac, you need to do this once:
 
 1. Open **Terminal** (press `Cmd + Space`, type "Terminal", press Enter)
-2. Type this command and press Enter (adjust the path to match your folder name):
+2. Type this command and press Enter (adjust the folder name to match what you extracted):
    ```
    chmod +x ~/Downloads/Astec-Rate-Application-*/START.sh ~/Downloads/Astec-Rate-Application-*/START.command
    ```
+   > If that doesn't work, open Finder, navigate to the folder, right-click `START.command` → **Open** → Click **Open** in the security dialog.
 
 ---
 
