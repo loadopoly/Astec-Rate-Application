@@ -49,6 +49,7 @@ services:
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET:-ips-default-jwt-secret-change-me}
       API_PORT: 3001
+      # In production (Render) set this to your Vercel URL, e.g. https://ips-freight.vercel.app
       CORS_ORIGINS: http://localhost:3000
     ports:
       - "3001:3001"
