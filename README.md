@@ -6,13 +6,17 @@
 
 ## 🌐 Use it from any browser — no install (FREE)
 
-1. Sign up at **[render.com](https://render.com)** with your GitHub account
-2. Click **New → Blueprint** → connect **`Astec-Rate-Application`** → click **Apply**
-3. Wait ~5 minutes → click the URL Render gives you → **you're done**
+1. Sign up at **[render.com](https://render.com)** with your GitHub account — it's free
+2. Click this button:
 
-That's it. One account. No URL copying. No separate frontend deployment. No configuration.
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/loadopoly/Astec-Rate-Application)
 
-📖 **Step-by-step with screenshots guidance:** [DEPLOY.md](DEPLOY.md)
+3. Click **Connect** next to `Astec-Rate-Application`, then click **Apply**
+4. Wait ~5 minutes → click the URL Render shows you → **done** ✅
+
+One account. One button. No configuration.
+
+📖 **Stuck? Need more detail?** [DEPLOY.md](DEPLOY.md)
 
 ---
 
