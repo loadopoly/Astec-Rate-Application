@@ -25,7 +25,7 @@ That's it. One account. No URL copying. No separate frontend deployment. No conf
 
 App opens automatically in your browser at **http://localhost:3000**.
 
-📖 **First time? Need to install Docker first?** [INSTALL.md](INSTALL.md)
+📖 **First time? Need to install Docker first?** [INSTALL.md](INSTALL.md) — includes a [direct download link](https://github.com/loadopoly/Astec-Rate-Application/archive/refs/heads/main.zip) so you don't need a GitHub account.
 
 ---
 

@@ -29,12 +29,11 @@ Docker is a free program that runs the IPS Freight Platform. You only install it
 
 ### Step 2 — Get the Application Files
 
-1. Go to the GitHub page for this project
-2. Click the green **"Code"** button
-3. Click **"Download ZIP"**
-4. Find the downloaded ZIP in your Downloads folder
-5. **Right-click** the ZIP file → **"Extract All"** → Click **"Extract"**
-6. You'll have a new folder. **Open it.**
+1. **[⬇️ Click here to download the app as a ZIP](https://github.com/loadopoly/Astec-Rate-Application/archive/refs/heads/main.zip)**
+   *(This downloads directly — no GitHub account needed)*
+2. Find the downloaded ZIP in your Downloads folder
+3. **Right-click** the ZIP → **"Extract All"** → click **"Extract"**
+4. Open the extracted folder
 
 ---
 
@@ -62,7 +61,7 @@ Docker is a free program that runs the IPS Freight Platform. You only install it
 
 ### Step 2 — Get the Application Files
 
-Same as Windows Step 2 above — download the ZIP from GitHub and extract it.
+Same as Windows — **[⬇️ click here to download the ZIP](https://github.com/loadopoly/Astec-Rate-Application/archive/refs/heads/main.zip)**, then double-click the ZIP to extract it.
 
 ---
 
