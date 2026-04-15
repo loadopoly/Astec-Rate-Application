@@ -28,12 +28,19 @@ if %errorlevel% neq 0 (
 
 echo  [1/3] Docker is running. Good!
 echo.
-echo  [2/3] Building and starting all services...
-echo        (This may take 3-5 minutes on first run)
+
+:: Copy default config if .env doesn't exist yet
+cd /d "%~dp0"
+if not exist .env (
+    echo  Setting up default configuration...
+    copy .env.defaults .env >nul
+)
+
+echo  [2/3] Starting all services...
+echo        (First run takes 3-5 minutes to build; after that it's ~30 seconds)
 echo.
 
-cd /d "%~dp0"
-docker compose up --build -d
+docker compose up -d
 
 if %errorlevel% neq 0 (
     color 0C

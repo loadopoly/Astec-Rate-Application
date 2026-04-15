@@ -39,14 +39,21 @@ fi
 
 echo " [1/3] Docker is running. Good!"
 echo ""
-echo " [2/3] Building and starting all services..."
-echo "       (This may take 3-5 minutes on first run)"
-echo ""
 
 # Navigate to the script's directory
 cd "$(dirname "$0")"
 
-docker compose up --build -d
+# Copy default config if .env doesn't exist yet
+if [ ! -f .env ]; then
+    echo " Setting up default configuration..."
+    cp .env.defaults .env
+fi
+
+echo " [2/3] Starting all services..."
+echo "       (First run takes 3-5 minutes to build; after that it's ~30 seconds)"
+echo ""
+
+docker compose up -d
 
 echo ""
 echo " [3/3] Waiting for services to be ready..."

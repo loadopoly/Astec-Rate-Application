@@ -21,8 +21,7 @@ out/
 # -------------------------------------------
 # Environment & Secrets
 # -------------------------------------------
-# Note: .env is intentionally tracked here - it contains safe defaults only.
-# For production, create .env.local with real secrets (it IS gitignored).
+.env
 .env.local
 .env.development.local
 .env.test.local
