@@ -4,32 +4,28 @@
 
 ---
 
-## 🚀 I just want to use it
+## 🌐 Use it from any browser — no install (FREE)
 
-### Option A — Use it from any browser (no install)
+1. Sign up at **[render.com](https://render.com)** with your GitHub account
+2. Click **New → Blueprint** → connect **`Astec-Rate-Application`** → click **Apply**
+3. Wait ~5 minutes → click the URL Render gives you → **you're done**
 
-Deploy to the internet in ~10 minutes. Free.
+That's it. One account. No URL copying. No separate frontend deployment. No configuration.
 
-| Step | What to do |
-|------|-----------|
-| 1 | **[Deploy API to Render](https://render.com/deploy?repo=https://github.com/loadopoly/Astec-Rate-Application)** — click Deploy, wait ~5 min, copy the URL |
-| 2 | **[Deploy frontend to Vercel](https://vercel.com/new/clone?repository-url=https://github.com/loadopoly/Astec-Rate-Application&root=apps/web)** — set root dir to `apps/web`, add `VITE_API_URL` env var |
-| 3 | Go back to Render → set `CORS_ORIGINS` to your Vercel URL |
-
-📖 **Full step-by-step guide (with what to look for at each click):** [DEPLOY.md](DEPLOY.md)
+📖 **Step-by-step with screenshots guidance:** [DEPLOY.md](DEPLOY.md)
 
 ---
 
-### Option B — Run it on your computer (no internet needed)
+## 💻 Run it on your own computer (no internet needed)
 
 | Windows | Mac |
 |---------|-----|
 | Double-click **`START.bat`** | Double-click **`START.command`** |
 | Double-click **`STOP.bat`** to stop | Double-click **`STOP.command`** to stop |
 
-That's it. The app opens in your browser automatically at **http://localhost:3000**.
+App opens automatically in your browser at **http://localhost:3000**.
 
-📖 **First time? Need Docker?** [INSTALL.md](INSTALL.md) walks through it with no tech knowledge required.
+📖 **First time? Need to install Docker first?** [INSTALL.md](INSTALL.md)
 
 ---
 
@@ -51,17 +47,10 @@ That's it. The app opens in your browser automatically at **http://localhost:300
 ### Quick start
 
 ```bash
-# Install dependencies
-npm install
-
-# Start local dev (requires Docker for the database)
-npm run dev
-
-# Build everything
-npm run build
-
-# Type-check
-npm run typecheck
+npm install        # install all workspace deps
+npm run dev        # start both api + web in dev mode (requires Docker for DB)
+npm run build      # build everything
+npm run typecheck  # type-check all packages
 ```
 
 ### Monorepo layout
@@ -69,7 +58,7 @@ npm run typecheck
 ```
 apps/
   web/          Vite + React frontend
-  api/          Express + TypeScript API
+  api/          Express + TypeScript API (also serves web/dist in production)
 docker/         Dockerfiles + nginx config
 .github/
   workflows/    CI pipeline (lint → test → build → migration check)
@@ -82,17 +71,16 @@ docker/         Dockerfiles + nginx config
 | Frontend | React 18, TypeScript, TanStack Query, TailwindCSS |
 | Backend | Node 20, Express, TypeScript, Prisma |
 | Database | PostgreSQL 16 |
-| Cache | Redis (optional — app runs without it) |
 | Container | Docker / Docker Compose |
 | CI | GitHub Actions |
-| Cloud | Render (API + DB) · Vercel (frontend) |
+| Cloud | Render (API + frontend + DB — single service) |
 
 ### Database
 
 ```bash
 cd apps/api
-npm run db:migrate    # create a new migration during development
-npm run db:studio     # open Prisma Studio (visual DB editor)
+npm run db:migrate    # create a new migration
+npm run db:studio     # visual DB browser
 npm run db:seed       # seed reference data
 ```
 
