@@ -46,6 +46,7 @@ export function DashboardLayout() {
       <aside
         className={`
           fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border
+          flex flex-col
           transform transition-transform duration-200 ease-in-out
           lg:translate-x-0 lg:static
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
