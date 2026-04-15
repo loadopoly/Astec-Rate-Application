@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, develop]
 
+# Minimal token permissions for all jobs (can be overridden per job)
+permissions:
+  contents: read
+
 env:
   NODE_VERSION: '20'
 
@@ -16,6 +20,8 @@ jobs:
   lint:
     name: Lint & Type Check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,6 +48,8 @@ jobs:
     name: Unit Tests
     runs-on: ubuntu-latest
     needs: lint
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -71,6 +79,8 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     needs: [lint, test]
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -108,6 +118,8 @@ jobs:
     name: Database Migrations Check
     runs-on: ubuntu-latest
     needs: lint
+    permissions:
+      contents: read
     services:
       postgres:
         image: postgres:16-alpine
@@ -145,3 +157,4 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/ips_freight_test
         run: npx prisma migrate deploy
+

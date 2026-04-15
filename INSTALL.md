@@ -29,12 +29,11 @@ Docker is a free program that runs the IPS Freight Platform. You only install it
 
 ### Step 2 — Get the Application Files
 
-1. Go to the GitHub page for this project
-2. Click the green **"Code"** button
-3. Click **"Download ZIP"**
-4. Find the downloaded ZIP in your Downloads folder
-5. **Right-click** the ZIP file → **"Extract All"** → Click **"Extract"**
-6. You'll have a new folder. **Open it.**
+1. **[⬇️ Click here to download the app as a ZIP](https://github.com/loadopoly/Astec-Rate-Application/archive/refs/heads/main.zip)**
+   *(This downloads directly — no GitHub account needed)*
+2. Find the downloaded ZIP in your Downloads folder
+3. **Right-click** the ZIP → **"Extract All"** → click **"Extract"**
+4. Open the extracted folder
 
 ---
 
@@ -62,20 +61,25 @@ Docker is a free program that runs the IPS Freight Platform. You only install it
 
 ### Step 2 — Get the Application Files
 
-Same as Windows Step 2 above — download the ZIP from GitHub and extract it.
+Same as Windows — **[⬇️ click here to download the ZIP](https://github.com/loadopoly/Astec-Rate-Application/archive/refs/heads/main.zip)**, then double-click the ZIP to extract it.
 
 ---
 
 ### Step 3 — Allow the Start Script (first time only)
 
-The first time you run the app on Mac, you need to do this once:
+When you double-click `START.command` for the first time, macOS will show a warning:
 
-1. Open **Terminal** (press `Cmd + Space`, type "Terminal", press Enter)
-2. Type this command and press Enter (adjust the folder name to match what you extracted):
-   ```
-   chmod +x ~/Downloads/Astec-Rate-Application-*/START.sh ~/Downloads/Astec-Rate-Application-*/START.command
-   ```
-   > If that doesn't work, open Finder, navigate to the folder, right-click `START.command` → **Open** → Click **Open** in the security dialog.
+> *"macOS cannot verify the developer of START.command"*
+
+1. Click **Cancel** (don't click "Move to Trash")
+2. Open **System Preferences** (or **System Settings** on macOS 13+) → **Privacy & Security**
+3. Scroll down to the Security section. You'll see a message: *"START.command was blocked because it is not from an identified developer"*
+4. Click **"Open Anyway"**
+5. Click **"Open"** in the confirmation dialog
+
+You'll only need to do this once. After that, double-clicking `START.command` and `STOP.command` will work normally.
+
+> 💡 **Tip:** If you don't see the "Open Anyway" button, try right-clicking `START.command` in Finder and choosing **"Open"** from the menu — then click **"Open"** in the dialog.
 
 ---
 
@@ -95,7 +99,7 @@ The first time you run the app on Mac, you need to do this once:
 When you're done using the platform, stop it to free up your computer's resources:
 
 - **Windows:** Double-click **`STOP.bat`**
-- **Mac:** Double-click **`STOP.command`** (or run `./STOP.sh` in Terminal)
+- **Mac:** Double-click **`STOP.command`**
 
 Your data is automatically saved and will be there next time you start.
 
@@ -123,11 +127,11 @@ Every time you want to use the platform after the first setup:
 - Just open your browser manually and go to **http://localhost:3000**
 
 ### "Port already in use" error
-- Another program may be using port 3000. Run `STOP.bat` or `STOP.sh` first, then try again.
+- Another program may be using port 3000. Run `STOP.bat` (Windows) or `STOP.command` (Mac) first, then try again.
 - Or restart your computer and try again.
 
 ### Something else went wrong
-- Run `STOP.bat` / `STOP.sh` to stop everything
+- Run `STOP.bat` (Windows) or `STOP.command` (Mac) to stop everything
 - Wait 30 seconds
 - Try `START.bat` / `START.command` again
 
