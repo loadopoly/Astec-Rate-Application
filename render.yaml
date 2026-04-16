@@ -32,8 +32,9 @@ services:
       - key: NODE_ENV
         value: production
       # Render injects PORT automatically; API_PORT is the fallback for local Docker.
-      - key: API_PORT
-        value: 10000
+      # API_PORT is intentionally NOT set here so Render's PORT takes effect.
+      # - key: API_PORT
+      #   value: 10000
       # Render automatically injects DATABASE_URL from the linked database below.
       - key: DATABASE_URL
         fromDatabase:
