@@ -161,7 +161,7 @@ export function NewQuotePage() {
             ))}
           </div>
           {/* hidden required input for form validation */}
-          <input type="text" required value={equipment} onChange={() => {}} className="sr-only" aria-hidden="true" />
+          <input type="text" required readOnly value={equipment} onChange={(e) => setEquip(e.target.value)} className="sr-only" aria-hidden="true" tabIndex={-1} />
         </div>
 
         {/* Weight */}

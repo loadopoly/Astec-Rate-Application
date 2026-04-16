@@ -12,7 +12,7 @@ export function LaneDetailPage() {
   const { dest } = useParams<{ dest: string }>()
   const navigate = useNavigate()
 
-  const lane = lanes.find((l) => encodeURIComponent(l.dest) === dest || l.dest === dest)
+  const lane = lanes.find((l) => l.dest === decodeURIComponent(dest ?? ''))
 
   if (!lane) {
     return (
