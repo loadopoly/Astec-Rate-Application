@@ -1,4 +1,12 @@
-# 📦 How to Install and Run IPS Freight Platform
+# 📦 How to Install and Run IPS Freight Platform (Local / Developer Setup)
+
+> ⚠️ **Most users don't need this.** If your company restricts software downloads, use the cloud version instead — it runs entirely in your browser with nothing installed:
+>
+> **→ https://ips-freight-api.onrender.com**
+>
+> The steps below are only needed by developers running the app locally on their own machine.
+
+---
 
 **You only need to do these steps once.** After that, starting the app is just a double-click.
 
