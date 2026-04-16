@@ -13,7 +13,6 @@ services:
     runtime: node
     region: oregon
     plan: free
-    nodeVersion: "20"
     # Build from repo root so we can build the web app first, then the API.
     # The compiled React static files (apps/web/dist) are served by Express directly,
     # so no separate static site or Vercel account is needed.
@@ -28,6 +27,8 @@ services:
     startCommand: "cd apps/api && (npx prisma migrate deploy || (echo 'Retrying migration in 5s...' && sleep 5 && npx prisma migrate deploy)) && node dist/app.js"
     healthCheckPath: /health
     envVars:
+      - key: NODE_VERSION
+        value: "20"
       - key: NODE_ENV
         value: production
       # Render injects PORT automatically; API_PORT is the fallback for local Docker.
