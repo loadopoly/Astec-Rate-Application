@@ -8,9 +8,45 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Inline critical styles for the pre-React loading indicator.
+         Keeps the page visually active while JS bundles download & parse. -->
+    <style>
+      body { margin: 0; background: hsl(222 47% 6%); }
+      #app-loader {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        gap: 1rem;
+        font-family: Inter, system-ui, sans-serif;
+      }
+      #app-loader .loader-icon {
+        width: 48px;
+        height: 48px;
+        border: 3px solid hsl(217 33% 22%);
+        border-top-color: hsl(38 92% 50%);
+        border-radius: 50%;
+        animation: app-spin 0.8s linear infinite;
+      }
+      #app-loader .loader-text {
+        color: hsl(215 20% 55%);
+        font-size: 0.875rem;
+        letter-spacing: 0.025em;
+      }
+      @keyframes app-spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Shown instantly while JS bundles load; React replaces this on mount -->
+      <div id="app-loader" aria-label="Loading application">
+        <div class="loader-icon"></div>
+        <span class="loader-text">Loading IPS Freight…</span>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
