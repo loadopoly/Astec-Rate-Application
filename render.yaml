@@ -24,7 +24,8 @@ services:
     # A single root install covers both workspace packages.
     buildCommand: "NODE_ENV=development npm install && (cd apps/web && npm run build) && (cd apps/api && npx prisma generate && npm run build)"
     # migrate deploy is idempotent — safe to run on every restart.
-    startCommand: cd apps/api && npx prisma migrate deploy && node dist/app.js
+    # Retry once after 5 s in case the free-tier DB is still waking up.
+    startCommand: "cd apps/api && (npx prisma migrate deploy || (echo 'Retrying migration in 5s...' && sleep 5 && npx prisma migrate deploy)) && node dist/app.js"
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
