@@ -1,19 +1,6 @@
+import { useNavigate } from 'react-router-dom'
 import { MapPin, TrendingUp, TrendingDown, Minus } from 'lucide-react'
-
-const lanes = [
-  { origin: 'Chattanooga, TN', dest: 'Atlanta, GA',       miles: '118',   loads: 67, avgRate: '$1,734', minRate: '$1,400', maxRate: '$2,100', ratePerMile: '$14.69', trend: 'flat'  },
-  { origin: 'Chattanooga, TN', dest: 'Chicago, IL',       miles: '480',   loads: 52, avgRate: '$2,967', minRate: '$2,400', maxRate: '$3,600', ratePerMile: '$6.18',  trend: 'flat'  },
-  { origin: 'Chattanooga, TN', dest: 'Columbus, OH',      miles: '424',   loads: 47, avgRate: '$2,841', minRate: '$2,200', maxRate: '$3,500', ratePerMile: '$6.70',  trend: 'up'    },
-  { origin: 'Chattanooga, TN', dest: 'Nashville, TN',     miles: '134',   loads: 44, avgRate: '$1,876', minRate: '$1,500', maxRate: '$2,300', ratePerMile: '$14.00', trend: 'up'    },
-  { origin: 'Chattanooga, TN', dest: 'Dallas, TX',        miles: '669',   loads: 38, avgRate: '$4,192', minRate: '$3,400', maxRate: '$5,200', ratePerMile: '$6.26',  trend: 'flat'  },
-  { origin: 'Chattanooga, TN', dest: 'Houston, TX',       miles: '834',   loads: 29, avgRate: '$5,421', minRate: '$4,400', maxRate: '$6,600', ratePerMile: '$6.50',  trend: 'up'    },
-  { origin: 'Chattanooga, TN', dest: 'Denver, CO',        miles: '1,648', loads: 23, avgRate: '$5,847', minRate: '$4,800', maxRate: '$7,200', ratePerMile: '$3.55',  trend: 'up'    },
-  { origin: 'Chattanooga, TN', dest: 'Kansas City, MO',   miles: '621',   loads: 21, avgRate: '$4,083', minRate: '$3,200', maxRate: '$5,100', ratePerMile: '$6.57',  trend: 'down'  },
-  { origin: 'Chattanooga, TN', dest: 'Minneapolis, MN',   miles: '817',   loads: 19, avgRate: '$5,172', minRate: '$4,100', maxRate: '$6,400', ratePerMile: '$6.33',  trend: 'up'    },
-  { origin: 'Chattanooga, TN', dest: 'Phoenix, AZ',       miles: '1,979', loads: 18, avgRate: '$7,213', minRate: '$5,800', maxRate: '$9,100', ratePerMile: '$3.65',  trend: 'down'  },
-  { origin: 'Chattanooga, TN', dest: 'Los Angeles, CA',   miles: '2,180', loads: 15, avgRate: '$8,941', minRate: '$7,200', maxRate: '$11,200', ratePerMile: '$4.10', trend: 'up'    },
-  { origin: 'Chattanooga, TN', dest: 'Portland, OR',      miles: '2,389', loads: 12, avgRate: '$9,876', minRate: '$8,100', maxRate: '$12,400', ratePerMile: '$4.13', trend: 'up'    },
-]
+import { lanes } from './lanes.data'
 
 const trendConfig = {
   up:   { icon: TrendingUp,   color: 'text-success',     label: 'Up'     },
@@ -22,6 +9,7 @@ const trendConfig = {
 }
 
 export function LanesPage() {
+  const navigate = useNavigate()
   const totalLoads = lanes.reduce((a, l) => a + l.loads, 0)
 
   return (
@@ -71,7 +59,7 @@ export function LanesPage() {
                 const t = trendConfig[lane.trend as keyof typeof trendConfig]
                 const TIcon = t.icon
                 return (
-                  <tr key={lane.dest} className="hover:bg-secondary/30 transition-colors cursor-pointer">
+                  <tr key={lane.dest} className="hover:bg-secondary/30 transition-colors cursor-pointer" onClick={() => navigate(`/lanes/${encodeURIComponent(lane.dest)}`)}>
                     <td className="py-3">
                       <div className="flex items-center gap-1.5">
                         <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" aria-hidden="true" />
