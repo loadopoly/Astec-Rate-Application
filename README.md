@@ -105,4 +105,4 @@ npm run db:seed       # seed reference data
 
 ---
 
-*IPS Freight Platform — Astec Industries / IPS Heavy Haul · v0.1.0*
+*IPS Freight Platform — Astec Industries / IPS Heavy Haul · v0.1.1*

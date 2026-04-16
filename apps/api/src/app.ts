@@ -63,7 +63,7 @@ const apiRouter = express.Router();
 apiRouter.get('/', (_req: Request, res: Response) => {
   res.json({
     name: 'IPS Freight Platform API',
-    version: '0.1.0',
+    version: '0.1.1',
     status: 'OK',
   });
 });
