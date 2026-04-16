@@ -145,6 +145,15 @@ async function upsertLane(originId: string, destId: string, distance?: number) {
 async function main() {
   console.log('🌱  Starting database seed…');
 
+  // If real data has already been imported, skip seeding to avoid
+  // re-introducing mock data alongside the real data.
+  const importCount = await prisma.importLog.count();
+  if (importCount > 0) {
+    console.log('  ⏭  Skipping seed — real data has been imported (%d import(s) found).', importCount);
+    console.log('     To re-seed, first clear the import_log table.');
+    return;
+  }
+
   // 1. Site
   const site = await prisma.site.upsert({
     where: { code: SITE.code },

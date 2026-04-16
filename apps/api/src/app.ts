@@ -14,6 +14,7 @@ import { quotesRoutes } from './routes/quotes.routes';
 import { carriersRoutes } from './routes/carriers.routes';
 import { lanesRoutes } from './routes/lanes.routes';
 import { importRoutes } from './routes/import.routes';
+import { statsRoutes } from './routes/stats.routes';
 
 // When the frontend is built alongside the API (production / Docker combined mode),
 // serve it as static files from the same process so no separate web server is needed.
@@ -76,6 +77,7 @@ apiRouter.use('/quotes',   quotesRoutes);
 apiRouter.use('/carriers', carriersRoutes);
 apiRouter.use('/lanes',    lanesRoutes);
 apiRouter.use('/import',   importRoutes);
+apiRouter.use('/stats',    statsRoutes);
 
 app.use('/api/v1', apiRouter);
 

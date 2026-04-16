@@ -1,20 +1,40 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, MapPin, TrendingUp, TrendingDown, Minus, Truck } from 'lucide-react'
-import { lanes } from './lanes.data'
+import { useQuery } from '@tanstack/react-query'
+import { ArrowLeft, MapPin, Truck, Loader2 } from 'lucide-react'
+import { lanesApi, type ApiLaneDetail } from '../../lib/api'
 
-const trendConfig = {
-  up:   { icon: TrendingUp,   color: 'text-success',          label: 'Trending Up'   },
-  down: { icon: TrendingDown, color: 'text-destructive',      label: 'Trending Down' },
-  flat: { icon: Minus,        color: 'text-muted-foreground', label: 'Stable'        },
+function fmtRate(n: number) {
+  return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 })
+}
+
+function fmtDate(iso: string) {
+  const d = new Date(iso)
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
 export function LaneDetailPage() {
   const { dest } = useParams<{ dest: string }>()
   const navigate = useNavigate()
 
-  const lane = lanes.find((l) => l.dest === decodeURIComponent(dest ?? ''))
+  // The param could be a cuid lane id or an encoded destination name
+  const laneId = decodeURIComponent(dest ?? '')
 
-  if (!lane) {
+  const { data: lane, isLoading, isError } = useQuery<ApiLaneDetail>({
+    queryKey: ['lane', laneId],
+    queryFn:  () => lanesApi.get(laneId) as Promise<ApiLaneDetail>,
+    enabled:  !!laneId,
+    retry:    1,
+  })
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-24 animate-fade-in">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+      </div>
+    )
+  }
+
+  if (isError || !lane) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center animate-fade-in">
         <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
@@ -31,8 +51,38 @@ export function LaneDetailPage() {
     )
   }
 
-  const t = trendConfig[lane.trend]
-  const TIcon = t.icon
+  // Compute stats from metrics
+  const allMetrics = lane.metrics ?? []
+  const totalLoads = allMetrics.reduce((s, m) => s + m.shipmentCount, 0)
+  const latestMetric = allMetrics[0]
+
+  // Rate stats across all metrics
+  const allRates = allMetrics.filter(m => m.avgRate > 0)
+  const avgRate = allRates.length > 0
+    ? Math.round(allRates.reduce((s, m) => s + m.avgRate, 0) / allRates.length)
+    : 0
+  const minRate = allRates.length > 0
+    ? Math.min(...allRates.map(m => m.minRate))
+    : 0
+  const maxRate = allRates.length > 0
+    ? Math.max(...allRates.map(m => m.maxRate))
+    : 0
+  const avgPerMile = latestMetric?.ratePerMile
+    ? '$' + latestMetric.ratePerMile.toFixed(2)
+    : '—'
+
+  // Recent quotes on this lane
+  const laneQuotes = lane.quotes ?? []
+
+  // Top carriers from quotes
+  const carrierCounts = new Map<string, number>()
+  for (const q of laneQuotes) {
+    const name = q.selectedCarrier?.name
+    if (name) carrierCounts.set(name, (carrierCounts.get(name) ?? 0) + 1)
+  }
+  const topCarriers = Array.from(carrierCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -48,24 +98,23 @@ export function LaneDetailPage() {
         <div className="flex flex-wrap items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-white">
-              {lane.origin} → {lane.dest}
+              {lane.origin.city}, {lane.origin.state} → {lane.destination.city}, {lane.destination.state}
             </h1>
-            <p className="text-muted-foreground mt-1">{lane.miles} miles · {lane.loads} loads in last 12 months</p>
+            <p className="text-muted-foreground mt-1">
+              {lane.distance ? `${lane.distance.toLocaleString()} miles` : 'Distance unknown'}
+              {totalLoads > 0 ? ` · ${totalLoads} loads` : ''}
+            </p>
           </div>
-          <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${t.color}`}>
-            <TIcon className="h-4 w-4" />
-            {t.label}
-          </span>
         </div>
       </div>
 
       {/* KPI row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Avg Rate',     value: lane.avgRate,     sub: '12-month average'  },
-          { label: 'Min Rate',     value: lane.minRate,     sub: 'Lowest recorded'   },
-          { label: 'Max Rate',     value: lane.maxRate,     sub: 'Highest recorded'  },
-          { label: '$/Mile',       value: lane.ratePerMile, sub: 'Average rate/mile' },
+          { label: 'Avg Rate',     value: avgRate > 0 ? fmtRate(avgRate) : '—',     sub: 'Average' },
+          { label: 'Min Rate',     value: minRate > 0 ? fmtRate(minRate) : '—',     sub: 'Lowest recorded' },
+          { label: 'Max Rate',     value: maxRate > 0 ? fmtRate(maxRate) : '—',     sub: 'Highest recorded' },
+          { label: '$/Mile',       value: avgPerMile,                                sub: 'Average rate/mile' },
         ].map((k) => (
           <div key={k.label} className="bg-card rounded-xl border border-border px-5 py-4">
             <p className="text-xl font-bold text-white">{k.value}</p>
@@ -75,51 +124,58 @@ export function LaneDetailPage() {
         ))}
       </div>
 
-      {/* Monthly history + lane details */}
+      {/* Quote history + lane details */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Monthly history table */}
+        {/* Quote history table */}
         <div className="lg:col-span-2 bg-card rounded-xl border border-border p-6">
-          <h2 className="text-base font-semibold text-white mb-4">Monthly Rate History — 2026</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full data-table">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left pb-3">Month</th>
-                  <th className="text-right pb-3">Loads</th>
-                  <th className="text-right pb-3">Avg Rate</th>
-                  <th className="text-right pb-3">Market Savings</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {lane.monthlyHistory.map((m) => (
-                  <tr key={m.month} className="hover:bg-secondary/30 transition-colors">
-                    <td className="py-3 text-sm font-medium text-white">{m.month} 2026</td>
-                    <td className="py-3 text-right text-sm text-white">{m.loads}</td>
-                    <td className="py-3 text-right text-sm font-semibold text-primary">{m.avgRate}</td>
-                    <td className="py-3 text-right text-sm font-bold text-success">{m.savings}</td>
+          <h2 className="text-base font-semibold text-white mb-4">Recent Quotes on This Lane</h2>
+          {laneQuotes.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full data-table">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left pb-3">Quote #</th>
+                    <th className="text-left pb-3">Date</th>
+                    <th className="text-right pb-3">Rate</th>
+                    <th className="text-left pb-3 pl-4">Carrier</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {laneQuotes.map((q) => (
+                    <tr key={q.id} className="hover:bg-secondary/30 transition-colors cursor-pointer" onClick={() => navigate(`/quotes/${q.requestNumber}`)}>
+                      <td className="py-3 text-primary text-sm font-mono">{q.requestNumber}</td>
+                      <td className="py-3 text-sm text-muted-foreground">{fmtDate(q.quoteDate)}</td>
+                      <td className="py-3 text-right text-sm font-semibold text-white">{fmtRate(q.quoteToCustomer)}</td>
+                      <td className="py-3 pl-4 text-sm text-muted-foreground">{q.selectedCarrier?.name ?? '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground py-6 text-center">No quotes recorded for this lane.</p>
+          )}
         </div>
 
-        {/* Lane details panel */}
+        {/* Right panel */}
         <div className="space-y-6">
-          <div className="bg-card rounded-xl border border-border p-6">
-            <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-              <Truck className="h-4 w-4 text-primary" />
-              Top Carriers on Lane
-            </h2>
-            <div className="space-y-2">
-              {lane.topCarriers.map((c, i) => (
-                <div key={c} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
-                  <span className="text-xs font-bold text-muted-foreground w-4">#{i + 1}</span>
-                  <span className="text-sm text-white">{c}</span>
-                </div>
-              ))}
+          {topCarriers.length > 0 && (
+            <div className="bg-card rounded-xl border border-border p-6">
+              <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
+                <Truck className="h-4 w-4 text-primary" />
+                Top Carriers on Lane
+              </h2>
+              <div className="space-y-2">
+                {topCarriers.map(([name, count], i) => (
+                  <div key={name} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
+                    <span className="text-xs font-bold text-muted-foreground w-4">#{i + 1}</span>
+                    <span className="text-sm text-white flex-1">{name}</span>
+                    <span className="text-xs text-muted-foreground">{count} loads</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="bg-card rounded-xl border border-border p-6">
             <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
@@ -127,16 +183,9 @@ export function LaneDetailPage() {
               Lane Details
             </h2>
             <div className="space-y-3">
-              <DetailRow label="Equipment Types" value={lane.equipment.join(', ')} />
-              <DetailRow label="Total Loads (12mo)" value={lane.loads.toString()} />
-              <DetailRow label="Distance" value={`${lane.miles} miles`} />
-              <DetailRow label="Rate Trend" value={t.label} />
+              <DetailRow label="Total Loads" value={totalLoads > 0 ? totalLoads.toString() : '—'} />
+              <DetailRow label="Distance" value={lane.distance ? `${lane.distance.toLocaleString()} miles` : '—'} />
             </div>
-            {lane.notes && (
-              <div className="mt-4 pt-4 border-t border-border">
-                <p className="text-xs text-muted-foreground leading-relaxed">{lane.notes}</p>
-              </div>
-            )}
           </div>
         </div>
       </div>

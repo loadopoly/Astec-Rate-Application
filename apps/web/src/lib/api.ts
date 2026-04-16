@@ -153,3 +153,106 @@ export const importApi = {
 
   getLogs: () => request<unknown[]>('/import/logs'),
 };
+
+// ---------------------------------------------------------------------------
+// Stats (Dashboard & Analytics)
+// ---------------------------------------------------------------------------
+
+export interface DashboardStats {
+  kpis: {
+    totalQuotes:    number;
+    wonQuotes:      number;
+    winRate:        number;
+    avgMargin:      number;
+    totalValue:     number;
+    activeCarriers: number;
+  };
+  recentQuotes: ApiQuote[];
+  topLanes:     Array<{ lane: string; count: number }>;
+}
+
+export interface AnalyticsStats {
+  kpis: {
+    totalSpend:    number;
+    totalLoads:    number;
+    avgMargin:     number;
+    carriersUsed:  number;
+  };
+  spendByCarrier: Array<{
+    carrier: string;
+    spend:   number;
+    loads:   number;
+    pct:     number;
+  }>;
+  monthlyTrend: Array<{
+    month:  string;
+    loads:  number;
+    spend:  number;
+    margin: string;
+  }>;
+}
+
+export const statsApi = {
+  dashboard: () => request<DashboardStats>('/stats/dashboard'),
+  analytics: () => request<AnalyticsStats>('/stats/analytics'),
+};
+
+// ---------------------------------------------------------------------------
+// Quote Detail (extended with bids)
+// ---------------------------------------------------------------------------
+
+export interface ApiQuoteDetail extends ApiQuote {
+  type:             string;
+  flatbedQty:       number;
+  stepDeckQty:      number;
+  doubleDeckQty:    number;
+  towawayQty:       number;
+  dollyQty:         number;
+  rgnQty:           number;
+  quoteResult:      string | null;
+  bids: Array<{
+    id:               string;
+    carrier:          { id: string; name: string; mcNumber: string | null };
+    totalRate:        number;
+    isSelected:       boolean;
+    equipmentRating:  number | null;
+    responseRating:   number | null;
+    serviceRating:    number | null;
+  }>;
+}
+
+// ---------------------------------------------------------------------------
+// Carrier Detail (extended with bids/quotes)
+// ---------------------------------------------------------------------------
+
+export interface ApiCarrierDetail extends ApiCarrier {
+  bids: Array<{
+    id:        string;
+    totalRate: number;
+    isSelected: boolean;
+    quote: {
+      id:            string;
+      requestNumber: string;
+      quoteDate:     string;
+      lane: {
+        origin:      { city: string; state: string };
+        destination: { city: string; state: string };
+      };
+    };
+  }>;
+}
+
+// ---------------------------------------------------------------------------
+// Lane Detail (extended with quotes)
+// ---------------------------------------------------------------------------
+
+export interface ApiLaneDetail extends ApiLane {
+  quotes: Array<{
+    id:              string;
+    requestNumber:   string;
+    quoteDate:       string;
+    quoteToCustomer: number;
+    status:          string;
+    selectedCarrier: { id: string; name: string; mcNumber: string | null } | null;
+  }>;
+}

@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, FileText, MapPin, Truck, Package, DollarSign, ChevronDown } from 'lucide-react'
-import { quotes } from './quotes.data'
 
 const EQUIPMENT_TYPES = ['RGN', 'Lowboy', 'Flatbed', 'Step-Deck']
 
@@ -32,9 +31,10 @@ const CARRIERS = [
 ]
 
 function nextQuoteId() {
-  const ids = quotes.map((q) => parseInt(q.id.replace('CHT-', ''), 10))
-  const max = Math.max(...ids)
-  return `CHT-${String(max + 1).padStart(4, '0')}`
+  // Generate a timestamp-based request number
+  const now = new Date()
+  const seq = String(Math.floor(Math.random() * 9000) + 1000)
+  return `CHT-${String(now.getMonth() + 1).padStart(2, '0')}${seq}`
 }
 
 export function NewQuotePage() {
