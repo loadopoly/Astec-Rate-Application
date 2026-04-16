@@ -1,16 +1,35 @@
 import { useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { MapPin, TrendingUp, TrendingDown, Minus } from 'lucide-react'
-import { lanes } from './lanes.data'
+import { lanes as staticLanes } from './lanes.data'
+import { lanesApi, type ApiLane } from '../../lib/api'
 
 const trendConfig = {
-  up:   { icon: TrendingUp,   color: 'text-success',     label: 'Up'     },
-  down: { icon: TrendingDown, color: 'text-destructive', label: 'Down'   },
+  up:   { icon: TrendingUp,   color: 'text-success',         label: 'Up'     },
+  down: { icon: TrendingDown, color: 'text-destructive',     label: 'Down'   },
   flat: { icon: Minus,        color: 'text-muted-foreground', label: 'Stable' },
+}
+
+function fmtRate(n: number) {
+  return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 })
 }
 
 export function LanesPage() {
   const navigate = useNavigate()
-  const totalLoads = lanes.reduce((a, l) => a + l.loads, 0)
+
+  const { data: apiLanes } = useQuery<ApiLane[]>({
+    queryKey: ['lanes'],
+    queryFn:  lanesApi.list,
+    retry:    false,
+  })
+
+  const usingApi = Array.isArray(apiLanes) && apiLanes.length > 0
+
+  const totalLoads = usingApi
+    ? apiLanes.reduce((a, l) => a + l.metrics.reduce((s, m) => s + m.shipmentCount, 0), 0)
+    : staticLanes.reduce((a, l) => a + l.loads, 0)
+
+  const laneCount = usingApi ? apiLanes.length : staticLanes.length
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -22,10 +41,10 @@ export function LanesPage() {
       {/* Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Active Lanes',     value: lanes.length.toString() },
+          { label: 'Active Lanes',       value: laneCount.toString() },
           { label: 'Total Loads (12mo)', value: totalLoads.toString() },
-          { label: 'Avg $/Mile',       value: '$5.91' },
-          { label: 'Trending Up',      value: `${lanes.filter(l => l.trend === 'up').length} lanes` },
+          { label: 'Avg $/Mile',         value: '$5.91' },
+          { label: 'Trending Up',        value: usingApi ? '—' : `${staticLanes.filter(l => l.trend === 'up').length} lanes` },
         ].map((s) => (
           <div key={s.label} className="bg-card rounded-xl border border-border px-5 py-4">
             <p className="text-2xl font-bold text-white">{s.value}</p>
@@ -51,36 +70,58 @@ export function LanesPage() {
                 <th className="text-right pb-3">Min</th>
                 <th className="text-right pb-3">Max</th>
                 <th className="text-right pb-3">$/Mile</th>
-                <th className="text-left pb-3 pl-4">Rate Trend</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {lanes.map((lane) => {
-                const t = trendConfig[lane.trend as keyof typeof trendConfig]
-                const TIcon = t.icon
-                return (
-                  <tr key={lane.dest} className="hover:bg-secondary/30 transition-colors cursor-pointer" onClick={() => navigate(`/lanes/${encodeURIComponent(lane.dest)}`)}>
-                    <td className="py-3">
-                      <div className="flex items-center gap-1.5">
-                        <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" aria-hidden="true" />
-                        <span className="text-sm text-white" aria-label={`from ${lane.origin} to ${lane.dest}`}>{lane.dest}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 text-right text-sm text-muted-foreground">{lane.miles}</td>
-                    <td className="py-3 text-right text-sm font-semibold text-white">{lane.loads}</td>
-                    <td className="py-3 text-right text-sm font-semibold text-primary">{lane.avgRate}</td>
-                    <td className="py-3 text-right text-sm text-muted-foreground">{lane.minRate}</td>
-                    <td className="py-3 text-right text-sm text-muted-foreground">{lane.maxRate}</td>
-                    <td className="py-3 text-right text-sm text-muted-foreground">{lane.ratePerMile}</td>
-                    <td className="py-3 pl-4">
-                      <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${t.color}`}>
-                        <TIcon className="h-3.5 w-3.5" />
-                        {t.label}
-                      </span>
-                    </td>
-                  </tr>
-                )
-              })}
+              {usingApi
+                ? apiLanes.map((lane) => {
+                    const latestMetric = lane.metrics[0]
+                    const totalLaneLoads = lane.metrics.reduce((s, m) => s + m.shipmentCount, 0)
+                    const destLabel = `${lane.destination.city}, ${lane.destination.state}`
+                    return (
+                      <tr key={lane.id} className="hover:bg-secondary/30 transition-colors cursor-pointer" onClick={() => navigate(`/lanes/${lane.id}`)}>
+                        <td className="py-3">
+                          <div className="flex items-center gap-1.5">
+                            <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" aria-hidden="true" />
+                            <span className="text-sm text-white">{destLabel}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 text-right text-sm text-muted-foreground">{lane.distance?.toLocaleString() ?? '—'}</td>
+                        <td className="py-3 text-right text-sm font-semibold text-white">{totalLaneLoads}</td>
+                        <td className="py-3 text-right text-sm font-semibold text-primary">{latestMetric ? fmtRate(latestMetric.avgRate) : '—'}</td>
+                        <td className="py-3 text-right text-sm text-muted-foreground">{latestMetric ? fmtRate(latestMetric.minRate) : '—'}</td>
+                        <td className="py-3 text-right text-sm text-muted-foreground">{latestMetric ? fmtRate(latestMetric.maxRate) : '—'}</td>
+                        <td className="py-3 text-right text-sm text-muted-foreground">{latestMetric?.ratePerMile ? '$' + latestMetric.ratePerMile.toFixed(2) : '—'}</td>
+                      </tr>
+                    )
+                  })
+                : staticLanes.map((lane) => {
+                    const t = trendConfig[lane.trend as keyof typeof trendConfig]
+                    const TIcon = t.icon
+                    return (
+                      <tr key={lane.dest} className="hover:bg-secondary/30 transition-colors cursor-pointer" onClick={() => navigate(`/lanes/${encodeURIComponent(lane.dest)}`)}>
+                        <td className="py-3">
+                          <div className="flex items-center gap-1.5">
+                            <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" aria-hidden="true" />
+                            <span className="text-sm text-white" aria-label={`from ${lane.origin} to ${lane.dest}`}>{lane.dest}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 text-right text-sm text-muted-foreground">{lane.miles}</td>
+                        <td className="py-3 text-right text-sm font-semibold text-white">{lane.loads}</td>
+                        <td className="py-3 text-right text-sm font-semibold text-primary">{lane.avgRate}</td>
+                        <td className="py-3 text-right text-sm text-muted-foreground">{lane.minRate}</td>
+                        <td className="py-3 text-right text-sm text-muted-foreground">{lane.maxRate}</td>
+                        <td className="py-3 text-right text-sm text-muted-foreground">{lane.ratePerMile}</td>
+                        <td className="py-3 pl-4">
+                          <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${t.color}`}>
+                            <TIcon className="h-3.5 w-3.5" />
+                            {t.label}
+                          </span>
+                        </td>
+                      </tr>
+                    )
+                  })
+              }
             </tbody>
           </table>
         </div>
