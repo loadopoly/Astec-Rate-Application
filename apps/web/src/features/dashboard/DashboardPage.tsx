@@ -2,6 +2,7 @@
  * Dashboard Page — Operations overview with real demo data
  */
 
+import { useNavigate } from 'react-router-dom'
 import {
   Truck,
   MapPin,
@@ -39,6 +40,7 @@ const statusConfig = {
 }
 
 export function DashboardPage() {
+  const navigate = useNavigate()
   return (
     <div className="space-y-8 animate-fade-in">
 
@@ -88,7 +90,7 @@ export function DashboardPage() {
                   const s = statusConfig[q.status as keyof typeof statusConfig]
                   const SIcon = s.icon
                   return (
-                    <tr key={q.id} className="hover:bg-secondary/30 transition-colors">
+                    <tr key={q.id} className="hover:bg-secondary/30 transition-colors cursor-pointer" onClick={() => navigate(`/quotes/${q.id}`)}>
                       <td className="py-3 text-primary text-sm font-mono">{q.id}</td>
                       <td className="py-3">
                         <div className="flex items-center gap-1.5">
@@ -117,10 +119,10 @@ export function DashboardPage() {
         <div className="bg-card rounded-xl border border-border p-6">
           <h2 className="text-lg font-semibold text-white mb-4">Quick Actions</h2>
           <div className="space-y-3">
-            <QuickActionButton icon={FileText} label="New Budget Quote" />
-            <QuickActionButton icon={MapPin} label="Search Lanes" />
-            <QuickActionButton icon={Users} label="Compare Carriers" />
-            <QuickActionButton icon={DollarSign} label="Margin Analysis" />
+            <QuickActionButton icon={FileText}   label="New Budget Quote"  onClick={() => navigate('/quotes/new')} />
+            <QuickActionButton icon={MapPin}     label="Search Lanes"      onClick={() => navigate('/lanes')} />
+            <QuickActionButton icon={Users}      label="Compare Carriers"  onClick={() => navigate('/carriers')} />
+            <QuickActionButton icon={DollarSign} label="Margin Analysis"   onClick={() => navigate('/analytics')} />
           </div>
 
           <div className="mt-6 pt-6 border-t border-border">
@@ -180,11 +182,12 @@ function KPICard({ title, value, change, icon: Icon, trend }: KPICardProps) {
 interface QuickActionButtonProps {
   icon: React.ComponentType<{ className?: string }>
   label: string
+  onClick?: () => void
 }
 
-function QuickActionButton({ icon: Icon, label }: QuickActionButtonProps) {
+function QuickActionButton({ icon: Icon, label, onClick }: QuickActionButtonProps) {
   return (
-    <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors text-left">
+    <button onClick={onClick} className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors text-left">
       <Icon className="h-4 w-4 text-primary" />
       <span className="text-sm font-medium text-white">{label}</span>
     </button>
