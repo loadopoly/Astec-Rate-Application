@@ -312,16 +312,19 @@ async function getDefaultSite() {
 async function purgeExistingData(): Promise<void> {
   /* eslint-disable no-console */
   console.log('🧹  First import detected — purging mock / seed data …');
-  // Delete in FK dependency order (children first)
-  await db.bid.deleteMany({});
-  await db.quote.deleteMany({});
-  await db.carrierPerformance.deleteMany({});
-  await db.carrierContact.deleteMany({});
-  await db.carrierSite.deleteMany({});
-  await db.carrier.deleteMany({});
-  await db.laneMetric.deleteMany({});
-  await db.lane.deleteMany({});
-  await db.location.deleteMany({});
+  // Delete in FK dependency order (children first) inside a transaction
+  // so we never leave the database in a partial state.
+  await db.$transaction([
+    db.bid.deleteMany({}),
+    db.quote.deleteMany({}),
+    db.carrierPerformance.deleteMany({}),
+    db.carrierContact.deleteMany({}),
+    db.carrierSite.deleteMany({}),
+    db.carrier.deleteMany({}),
+    db.laneMetric.deleteMany({}),
+    db.lane.deleteMany({}),
+    db.location.deleteMany({}),
+  ]);
   console.log('   ✓ Seed data purged.');
   /* eslint-enable no-console */
 }
@@ -353,7 +356,8 @@ async function processRow(
   }
 
   if (!originCity || !destCity) {
-    errors.push(`Row ${rowNum}: missing origin/destination city`);
+    const missing = !originCity && !destCity ? 'origin and destination city' : !originCity ? 'origin city' : 'destination city';
+    errors.push(`Row ${rowNum}: missing ${missing}`);
     return 'skipped';
   }
 
