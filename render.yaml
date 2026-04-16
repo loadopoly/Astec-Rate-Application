@@ -13,7 +13,7 @@ services:
     runtime: node
     region: oregon
     plan: free
-    nodeVersion: 20
+    nodeVersion: "20"
     # Build from repo root so we can build the web app first, then the API.
     # The compiled React static files (apps/web/dist) are served by Express directly,
     # so no separate static site or Vercel account is needed.
