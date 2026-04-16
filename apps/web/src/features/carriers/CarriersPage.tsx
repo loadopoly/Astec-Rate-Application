@@ -19,7 +19,9 @@ export function CarriersPage() {
     ? apiCarriers.filter((c) => c.isPreferred)
     : staticCarriers.filter((c) => c.preferred)
 
-  const totalLoads = usingApi ? 0 : staticCarriers.reduce((a, c) => a + c.ytdLoads, 0)
+  const totalLoads = usingApi
+    ? apiCarriers.reduce((a, c) => a + c.performance.reduce((s, p) => s + p.wonBids, 0), 0)
+    : staticCarriers.reduce((a, c) => a + c.ytdLoads, 0)
   const activeCount = usingApi ? apiCarriers.length : staticCarriers.length
 
   return (
@@ -34,7 +36,7 @@ export function CarriersPage() {
         {[
           { label: 'Total Carriers',    value: activeCount.toString() },
           { label: 'Preferred',         value: preferred.length.toString() },
-          { label: 'Loads Moved (YTD)', value: totalLoads > 0 ? totalLoads.toString() : '—' },
+          { label: 'Loads Moved (YTD)', value: totalLoads > 0 ? totalLoads.toString() : '0' },
           { label: 'Best On-Time',      value: '98%',  sub: 'Regional Express' },
         ].map((s) => (
           <div key={s.label} className="bg-card rounded-xl border border-border px-5 py-4">

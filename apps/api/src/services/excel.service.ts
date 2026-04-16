@@ -136,7 +136,7 @@ function cellStr(cell: ExcelJS.Cell): string {
 }
 
 function parseNum(s: string): number {
-  return parseFloat(s.replace(/[$,%\s]/g, '').replace(/,/g, '')) || 0;
+  return parseFloat(s.replace(/[$,%\s,]/g, '')) || 0;
 }
 
 function parseDate(s: string): Date | null {
@@ -180,14 +180,15 @@ async function getOrCreateCarrier(name: string, mcNumber?: string) {
       return existing;
     }
   }
-  // Create new carrier
+  // Create new carrier; default to asset-based CARRIER type.
+  // The carrier type can be updated later once more details are available.
   return db.carrier.create({
     data: {
-      name:        name || `Carrier ${mcNumber}`,
-      mcNumber:    mcNumber || null,
-      type:        CarrierType.CARRIER,
-      isAssetBased: false,
-      isBroker:    false,
+      name:         name || `Carrier ${mcNumber}`,
+      mcNumber:     mcNumber || null,
+      type:         CarrierType.CARRIER,
+      isAssetBased: true,
+      isBroker:     false,
     },
   });
 }
@@ -246,8 +247,8 @@ async function processRow(
     return 'skipped';
   }
 
-  const origin = await upsertLocation(originCity, originState || 'XX');
-  const dest   = await upsertLocation(destCity,   destState   || 'XX');
+  const origin = await upsertLocation(originCity, originState || '');
+  const dest   = await upsertLocation(destCity,   destState   || '');
   const miles  = parseNum(row.miles ?? '');
   const lane   = await upsertLane(origin.id, dest.id, miles || undefined);
 
@@ -261,7 +262,7 @@ async function processRow(
   // Rates
   const quoteToCustomer = parseNum(row.rate ?? '');
   const marginPct       = row.margin ? parseNum(row.margin) / 100 : 0;
-  const carrierTotal    = parseFloat((quoteToCustomer * (1 - marginPct)).toFixed(2));
+  const carrierTotal    = Math.round(quoteToCustomer * (1 - marginPct) * 100) / 100;
 
   const quoteDate = parseDate(row.quoteDate ?? '') ?? new Date();
   const requestNumber = row.requestNumber?.trim();
