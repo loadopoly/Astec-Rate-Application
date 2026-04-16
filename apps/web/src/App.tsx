@@ -4,7 +4,7 @@ import { DashboardLayout } from './components/layout/DashboardLayout'
 import { DashboardPage } from './features/dashboard'
 import { QuotesPage, QuoteDetailPage } from './features/quotes'
 import { LanesPage, LaneDetailPage } from './features/lanes'
-import { CarriersPage, CarrierDetailPage } from './features/carriers'
+import { CarriersPage, CarrierDetailPage, AddCarrierPage } from './features/carriers'
 import { AnalyticsPage } from './features/analytics'
 import { SettingsPage } from './features/settings'
 import { NewQuotePage } from './features/quotes/NewQuotePage'
@@ -22,6 +22,7 @@ function App() {
           <Route path="lanes" element={<LanesPage />} />
           <Route path="lanes/:dest" element={<LaneDetailPage />} />
           <Route path="carriers" element={<CarriersPage />} />
+          <Route path="carriers/new" element={<AddCarrierPage />} />
           <Route path="carriers/:mc" element={<CarrierDetailPage />} />
           <Route path="analytics/*" element={<AnalyticsPage />} />
           <Route path="settings/*" element={<SettingsPage />} />
