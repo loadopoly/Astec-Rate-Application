@@ -57,7 +57,7 @@ export function CarriersPage() {
       <div className="bg-card rounded-xl border border-border p-6">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-semibold text-white">Carrier Roster</h2>
-          <button className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors font-medium">
+          <button onClick={() => navigate('/carriers/new')} className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors font-medium">
             <Users className="h-4 w-4" />
             Add Carrier
           </button>
