@@ -21,10 +21,7 @@ services:
     # NOTE: NODE_ENV=production (set below) causes plain `npm install` to skip
     # devDependencies. We use --include=dev so build tools (tsc, vite, prisma)
     # are always available. A single root install covers both workspace packages.
-    buildCommand: >
-      npm install --include=dev &&
-      (cd apps/web && npm run build) &&
-      (cd apps/api && npx prisma generate && npm run build)
+    buildCommand: "npm install --include=dev && (cd apps/web && npm run build) && (cd apps/api && npx prisma generate && npm run build)"
     # migrate deploy is idempotent — safe to run on every restart.
     startCommand: cd apps/api && npx prisma migrate deploy && node dist/app.js
     healthCheckPath: /health
@@ -48,9 +45,9 @@ services:
       - key: JWT_REFRESH_EXPIRES_IN
         value: 30d
       - key: RATE_LIMIT_WINDOW_MS
-        value: 900000
+        value: "900000"
       - key: RATE_LIMIT_MAX_REQUESTS
-        value: 100
+        value: "100"
       - key: LOG_LEVEL
         value: info
       # CORS_ORIGINS is no longer required — the React frontend is served from the
